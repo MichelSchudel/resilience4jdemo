@@ -1,0 +1,47 @@
+
+management.endpoints.web.exposure.include: '*'
+management.endpoint.health.show-details: always
+
+management.metrics.tags.application: demo
+management.metrics.distribution.percentiles-histogram.http.server.requests: true
+management.metrics.distribution.percentiles-histogram.resilience4j.circuitbreaker.calls: true
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      registerHealthIndicator: true
+      ringBufferSizeInClosedState: 10
+      ringBufferSizeInHalfOpenState: 3
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+      waitDurationInOpenState: 2s
+      failureRateThreshold: 50
+      eventConsumerBufferSize: 10
+      ignoreExceptions:
+        - nl.craftsmen.demo.BusinessException
+    shared:
+      registerHealthIndicator: true
+      ringBufferSizeInClosedState: 100
+      ringBufferSizeInHalfOpenState: 30
+      waitDurationInOpenState: 1s
+      failureRateThreshold: 50
+      eventConsumerBufferSize: 10
+      ignoreExceptions:
+        - nl.craftsmen.demo.BusinessException
+  instances:
+    backendA:
+      baseConfig: default
+      ringBufferSizeInClosedState: 5
+
+resilience4j.retry:
+  configs:
+    default:
+      maxRetryAttempts: 2
+      waitDuration: 100
+      retryExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.io.IOException
+      ignoreExceptions:
+        - nl.craftsmen.demo.BusinessException
+  instances:
+    backendA:
+      maxRetryAttempts: 3
